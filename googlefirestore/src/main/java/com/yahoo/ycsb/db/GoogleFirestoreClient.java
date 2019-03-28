@@ -60,40 +60,42 @@ public class GoogleFirestoreClient extends DB {
      */
     static final String PROJECT = "googlefirestore.projectId";
     static final String PRIVKEYFILE = "googlefirestore.serviceAccountKey";
+    static final String DEBUG = "googlefirestore.debug";
   }
 
-  private static final Object LOCK_OBJECT = new Object();
   private static final Logger LOGGER = Logger.getLogger(GoogleFirestoreClient.class);
 
   private static Firestore db;
 
   @Override
   public void init() throws DBException {
-    synchronized (LOCK_OBJECT) {
-      if (db != null) {
-        return;
-      }
-      Properties properties = getProperties();
-      String projectId = properties.getProperty(GoogleFirestoreProperties.PROJECT);
-      if (projectId == null) {
-        throw new DBException("Must provide project ID.");
-      }
-      String privateKeyFile = properties.getProperty(GoogleFirestoreProperties.PRIVKEYFILE);
-      if (privateKeyFile == null) {
-        throw new DBException("Must provide full path to private key file.");
-      }
-      try {
-        GoogleCredentials gCreds = GoogleCredentials.fromStream(new FileInputStream(privateKeyFile));
-        FirestoreOptions fsOptions = FirestoreOptions.newBuilder().setCredentials(gCreds).build();
-        db = fsOptions.getService();
-      } catch (FileNotFoundException e) {
-        LOGGER.error("Can't find key.", e);
-      } catch (IOException e) {
-        LOGGER.error("No file to import.", e);
-      }
-
-      LOGGER.info("Created Firestore client for project: "+ projectId);
+    if (db != null) {
+      return;
     }
+    Properties properties = getProperties();
+    String debug = properties.getProperty(GoogleFirestoreProperties.DEBUG);
+    if (null != debug && "true".equalsIgnoreCase(debug)) {
+      LOGGER.setLevel(Level.DEBUG);
+    }
+    String projectId = properties.getProperty(GoogleFirestoreProperties.PROJECT);
+    if (projectId == null) {
+      throw new DBException("Must provide project ID.");
+    }
+    String privateKeyFile = properties.getProperty(GoogleFirestoreProperties.PRIVKEYFILE);
+    if (privateKeyFile == null) {
+      throw new DBException("Must provide full path to private key file.");
+    }
+    try {
+      GoogleCredentials gCreds = GoogleCredentials.fromStream(new FileInputStream(privateKeyFile));
+      FirestoreOptions fsOptions = FirestoreOptions.newBuilder().setCredentials(gCreds).build();
+      db = fsOptions.getService();
+    } catch (FileNotFoundException e) {
+      LOGGER.error("Can't find key.", e);
+    } catch (IOException e) {
+      LOGGER.error("No file to import.", e);
+    }
+
+    LOGGER.info("Created Firestore client for project: "+ projectId);
   }
 
   @Override
@@ -176,7 +178,7 @@ public class GoogleFirestoreClient extends DB {
 
     try {
       ApiFuture<WriteResult> writeResult = db.collection(table).document(key).set(data, SetOptions.merge());
-      LOGGER.error("Update time: " + writeResult.get().getUpdateTime());
+      LOGGER.info("Update time: " + writeResult.get().getUpdateTime());
       return Status.OK;
 
     } catch (InterruptedException e) {
