@@ -32,6 +32,9 @@ import com.yahoo.ycsb.DBException;
 import com.yahoo.ycsb.Status;
 import com.yahoo.ycsb.StringByteIterator;
 
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
+
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -41,8 +44,6 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.Vector;
 import java.util.concurrent.ExecutionException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * YCSB Client for Google's Cloud Firestore.
@@ -62,7 +63,7 @@ public class GoogleFirestoreClient extends DB {
   }
 
   private static final Object LOCK_OBJECT = new Object();
-  private static final Logger LOGGER = Logger.getLogger(GoogleFirestoreClient.class.getName());
+  private static final Logger LOGGER = Logger.getLogger(GoogleFirestoreClient.class);
 
   private static Firestore db;
 
@@ -86,12 +87,12 @@ public class GoogleFirestoreClient extends DB {
         FirestoreOptions fsOptions = FirestoreOptions.newBuilder().setCredentials(gCreds).build();
         db = fsOptions.getService();
       } catch (FileNotFoundException e) {
-        LOGGER.log(Level.WARNING, "Can't find key.", e);
+        LOGGER.error("Can't find key.", e);
       } catch (IOException e) {
-        LOGGER.log(Level.WARNING, "No file to import.", e);
+        LOGGER.error("No file to import.", e);
       }
 
-      LOGGER.info(String.format("Created Firestore client for project: %s", projectId));
+      LOGGER.info("Created Firestore client for project: "+ projectId);
     }
   }
 
@@ -105,10 +106,10 @@ public class GoogleFirestoreClient extends DB {
 
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
-      LOGGER.log(Level.WARNING, "Interrupted during read().", e);
+      LOGGER.error("Interrupted during read().", e);
       return Status.ERROR;
     } catch (ExecutionException e) {
-      LOGGER.log(Level.WARNING, "Error during read().", e);
+      LOGGER.error("Error during read().", e);
       return Status.ERROR;
     }
   }
@@ -141,10 +142,10 @@ public class GoogleFirestoreClient extends DB {
 
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
-      LOGGER.log(Level.WARNING, "Interrupted during scan().", e);
+      LOGGER.error("Interrupted during scan().", e);
       return Status.ERROR;
     } catch (ExecutionException e) {
-      LOGGER.log(Level.WARNING, "Error during scan().", e);
+      LOGGER.error("Error during scan().", e);
       return Status.ERROR;
     }
   }
@@ -160,10 +161,10 @@ public class GoogleFirestoreClient extends DB {
 
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
-      LOGGER.log(Level.WARNING, "Interrupted during update().", e);
+      LOGGER.error("Interrupted during update().", e);
       return Status.ERROR;
     } catch (ExecutionException e) {
-      LOGGER.log(Level.WARNING, "Error during update().", e);
+      LOGGER.error("Error during update().", e);
       return Status.ERROR;
     }
   }
@@ -175,15 +176,15 @@ public class GoogleFirestoreClient extends DB {
 
     try {
       ApiFuture<WriteResult> writeResult = db.collection(table).document(key).set(data, SetOptions.merge());
-      LOGGER.log(Level.WARNING, "Update time: " + writeResult.get().getUpdateTime());
+      LOGGER.error("Update time: " + writeResult.get().getUpdateTime());
       return Status.OK;
 
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
-      LOGGER.log(Level.WARNING, "Interrupted during insert().", e);
+      LOGGER.error("Interrupted during insert().", e);
       return Status.ERROR;
     } catch (ExecutionException e) {
-      LOGGER.log(Level.WARNING, "Error during insert().", e);
+      LOGGER.error("Error during insert().", e);
       return Status.ERROR;
     }
   }
@@ -199,10 +200,10 @@ public class GoogleFirestoreClient extends DB {
 
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
-      LOGGER.log(Level.WARNING, "Interrupted during delete().", e);
+      LOGGER.error("Interrupted during delete().", e);
       return Status.ERROR;
     } catch (ExecutionException e) {
-      LOGGER.log(Level.WARNING, "Error during delete().", e);
+      LOGGER.error("Error during delete().", e);
       return Status.ERROR;
     }
   }
