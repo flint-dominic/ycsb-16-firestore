@@ -105,14 +105,14 @@ public class GoogleFirestoreClient extends DB {
     try {
       DocumentSnapshot docSs = docRef.get().get();
       if (LOGGER.isDebugEnabled()) {
-        LOGGER.debug("read: collection: " + table + " document: " + key);
+        LOGGER.debug("read: Collection: " + table + " document: " + key);
       }
       // If document doesn't exist, will cause NPE.
       if (docSs.exists()) {
         parseFields(fields, docSs, result);
         return Status.OK;
       } else {
-        LOGGER.error("read: Referenced document doesn't exist!");
+        LOGGER.error("read: Referenced document is missing. : " + docSs.getReference().toString());
         return Status.ERROR;
       }
 
@@ -158,14 +158,13 @@ public class GoogleFirestoreClient extends DB {
 
   @Override
   public Status update(String table, String key, Map<String, ByteIterator> values) {
-    // TODO: confirm with firestore reference.
     DocumentReference docRef = toReference(table, key);
     Map<String, Object> data = toData(values);
 
     try {
       docRef.set(data, SetOptions.merge()).get();
       if (LOGGER.isDebugEnabled()) {
-        LOGGER.debug("update: document: " + key + " : " + data.toString());
+        LOGGER.debug("update: Document: " + key + " : " + data.toString());
       }
       return Status.OK;
 
@@ -181,14 +180,13 @@ public class GoogleFirestoreClient extends DB {
 
   @Override
   public Status insert(String table, String key, Map<String, ByteIterator> values) {
-    // TODO: confirm with firestore reference.
     DocumentReference docRef = toReference(table, key);
     Map<String, Object> data = toData(values);
 
     try {
       ApiFuture<WriteResult> writeResult = docRef.set(data, SetOptions.merge());
       if (LOGGER.isDebugEnabled()) {
-        LOGGER.debug("insert: update time: " + writeResult.get().getUpdateTime());
+        LOGGER.debug("insert: Update time: " + writeResult.get().getUpdateTime());
       }
       return Status.OK;
 
@@ -209,7 +207,7 @@ public class GoogleFirestoreClient extends DB {
     try {
       docRef.delete().get();
       if (LOGGER.isDebugEnabled()){
-        LOGGER.debug("delete: document: " + docRef.toString());
+        LOGGER.debug("delete: Document: " + docRef.toString());
       }
       return Status.OK;
 
@@ -229,6 +227,9 @@ public class GoogleFirestoreClient extends DB {
     for (String field : docFields) {
       String value = docSs.getString(field);
       result.put(field, new StringByteIterator(value));
+      if (LOGGER.isDebugEnabled()) {
+        LOGGER.debug("parse: field: " + field + " value: " + value);
+      }
     }
   }
 
