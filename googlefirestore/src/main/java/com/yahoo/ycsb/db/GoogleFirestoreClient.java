@@ -158,6 +158,7 @@ public class GoogleFirestoreClient extends DB {
 
   @Override
   public Status update(String table, String key, Map<String, ByteIterator> values) {
+    // TODO: confirm with firestore reference.
     DocumentReference reference = toReference(table, key);
     Map<String, Object> data = toData(values);
 
@@ -177,6 +178,7 @@ public class GoogleFirestoreClient extends DB {
 
   @Override
   public Status insert(String table, String key, Map<String, ByteIterator> values) {
+    // TODO: confirm with firestore reference.
     DocumentReference docRef = toReference(table, key);
     Map<String, Object> data = toData(values);
 
@@ -198,7 +200,6 @@ public class GoogleFirestoreClient extends DB {
   @Override
   public Status delete(String table, String key) {
     DocumentReference reference = toReference(table, key);
-    DocumentReference docRef = db.collection(table).document(key);
 
     try {
       reference.delete().get();
