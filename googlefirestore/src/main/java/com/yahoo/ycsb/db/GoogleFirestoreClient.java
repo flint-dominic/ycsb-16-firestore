@@ -100,16 +100,16 @@ public class GoogleFirestoreClient extends DB {
 
   @Override
   public Status read(String table, String key, Set<String> fields, Map<String, ByteIterator> result) {
-    DocumentReference reference = toReference(table, key);
+    DocumentReference docRef = toReference(table, key);
 
     try {
-      DocumentSnapshot document = reference.get().get();
+      DocumentSnapshot docSs = docRef.get().get();
       if (LOGGER.isDebugEnabled()) {
-        LOGGER.debug("read: Collection: " + table + " Document: " + key);
+        LOGGER.debug("read: collection: " + table + " document: " + key);
       }
       // If document doesn't exist, will cause NPE.
-      if (document.exists()) {
-        parseFields(fields, document, result);
+      if (docSs.exists()) {
+        parseFields(fields, docSs, result);
         return Status.OK;
       } else {
         LOGGER.error("read: Referenced document doesn't exist!");
@@ -135,10 +135,10 @@ public class GoogleFirestoreClient extends DB {
         .limit(recordcount);
 
     try {
-      QuerySnapshot results = query.get().get();
-      for (DocumentSnapshot document : results.getDocuments()) {
+      QuerySnapshot querySs = query.get().get();
+      for (DocumentSnapshot docSs : querySs.getDocuments()) {
         HashMap<String, ByteIterator> scanres = new HashMap<>();
-        parseFields(fields, document, scanres);
+        parseFields(fields, docSs, scanres);
         result.add(scanres);
       }
       if (LOGGER.isDebugEnabled()) {
@@ -159,11 +159,14 @@ public class GoogleFirestoreClient extends DB {
   @Override
   public Status update(String table, String key, Map<String, ByteIterator> values) {
     // TODO: confirm with firestore reference.
-    DocumentReference reference = toReference(table, key);
+    DocumentReference docRef = toReference(table, key);
     Map<String, Object> data = toData(values);
 
     try {
-      reference.set(data, SetOptions.merge()).get();
+      docRef.set(data, SetOptions.merge()).get();
+      if (LOGGER.isDebugEnabled()) {
+        LOGGER.debug("update: document: " + key + " : " + data.toString());
+      }
       return Status.OK;
 
     } catch (InterruptedException e) {
@@ -184,7 +187,9 @@ public class GoogleFirestoreClient extends DB {
 
     try {
       ApiFuture<WriteResult> writeResult = docRef.set(data, SetOptions.merge());
-      LOGGER.info("Update time: " + writeResult.get().getUpdateTime());
+      if (LOGGER.isDebugEnabled()) {
+        LOGGER.debug("insert: update time: " + writeResult.get().getUpdateTime());
+      }
       return Status.OK;
 
     } catch (InterruptedException e) {
@@ -199,10 +204,13 @@ public class GoogleFirestoreClient extends DB {
 
   @Override
   public Status delete(String table, String key) {
-    DocumentReference reference = toReference(table, key);
+    DocumentReference docRef = toReference(table, key);
 
     try {
-      reference.delete().get();
+      docRef.delete().get();
+      if (LOGGER.isDebugEnabled()){
+        LOGGER.debug("delete: document: " + docRef.toString());
+      }
       return Status.OK;
 
     } catch (InterruptedException e) {
@@ -216,10 +224,10 @@ public class GoogleFirestoreClient extends DB {
   }
 
   private void parseFields(
-      Set<String> fields, DocumentSnapshot document, Map<String, ByteIterator> result) {
-    Set<String> documentFields = fields == null ? document.getData().keySet() : fields;
-    for (String field : documentFields) {
-      String value = document.getString(field);
+      Set<String> fields, DocumentSnapshot docSs, Map<String, ByteIterator> result) {
+    Set<String> docFields = fields == null ? docSs.getData().keySet() : fields;
+    for (String field : docFields) {
+      String value = docSs.getString(field);
       result.put(field, new StringByteIterator(value));
     }
   }
