@@ -14,7 +14,7 @@
  * permissions and limitations under the License. See accompanying
  * LICENSE file.
  */
-package com.yahoo.ycsb.db;
+package com.yahoo.ycsb.db.firestore;
 
 import com.google.api.core.ApiFuture;
 import com.google.auth.oauth2.GoogleCredentials;
@@ -107,7 +107,6 @@ public class GoogleFirestoreClient extends DB {
       if (LOGGER.isDebugEnabled()) {
         LOGGER.debug("read: Collection: " + table + " document: " + key);
       }
-      // If document doesn't exist, will cause NPE.
       if (docSs.exists()) {
         parseFields(fields, docSs, result);
         return Status.OK;

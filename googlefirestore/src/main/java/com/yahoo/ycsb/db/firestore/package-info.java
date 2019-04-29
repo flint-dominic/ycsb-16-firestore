@@ -18,5 +18,5 @@
 /**
  * The YCSB binding for Google's Cloud Firestore.
  */
-package com.yahoo.ycsb.db;
+package com.yahoo.ycsb.db.firestore;
 
